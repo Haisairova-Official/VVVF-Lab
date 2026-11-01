@@ -1,0 +1,6 @@
+Alstom community reference program
+Parameter source: https://github.com/VvvfGeeks/YAML-Files/blob/master/VVVF/Alstom.yaml
+SHE switching angle data: https://github.com/VvvfGeeks/VVVF-Simulator/tree/main/VvvfSimulator/Vvvf/SwitchAngle
+Data adapted to JSON. Credit: VvvfGeeks / VVVF-Simulator contributors.
+Upstream permits non-commercial use, and requests attribution/link for modified programs. This educational demonstration is for non-commercial use.
+The community preset does not identify a specific Shanghai Metro vehicle. Vehicle metadata and mechanical defaults do not constitute a calibrated reproduction.
