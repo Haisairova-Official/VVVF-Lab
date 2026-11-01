@@ -39,13 +39,28 @@ class GPSSpeedTracker {
   }
   static distance(a,b){const r=Math.PI/180,dlat=(b.lat-a.lat)*r,dlon=(b.lon-a.lon)*r,x=Math.sin(dlat/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dlon/2)**2;return 6371000*2*Math.atan2(Math.sqrt(Math.min(1,x)),Math.sqrt(Math.max(0,1-x)));}
 }
-// Render/audio follower: GPS updates only the target; each animation frame moves
-// continuously toward it. 90% of a step is reached in about 1.5 seconds.
+// Bounded acceleration/deceleration, not an exponential catch-up.
+// Values are km/h; maxRate is km/h/s. Substeps keep different frame cadences equivalent.
 class GPSSpeedFollower {
  constructor(){this.reset();}
- reset(){this.value=0;this.target=0;}
+ reset(){this.value=0;this.target=0;this.rate=0;}
  setTarget(value){if(Number.isFinite(value))this.target=Math.max(0,Math.min(100,value));}
- step(dt){if(!Number.isFinite(dt)||dt<=0)return this.value;this.value+=(this.target-this.value)*(1-Math.exp(-dt/.65));if(Math.abs(this.target-this.value)<.02)this.value=this.target;return this.value;}
+ step(dt,maxRate=3.24){
+  if(!Number.isFinite(dt)||dt<=0||!Number.isFinite(maxRate)||maxRate<=0)return this.value;
+  const jerk=maxRate*4;
+  for(let remaining=Math.min(dt,1);remaining>1e-9;){
+   const h=Math.min(remaining,1/120);remaining-=h;
+   const difference=this.target-this.value;
+   if(Math.abs(difference)<.002){this.value=this.target;this.rate=0;break;}
+   const desired=Math.sign(difference)*Math.min(maxRate,Math.sqrt(2*jerk*Math.abs(difference)));
+   const previous=this.rate;this.rate+=Math.max(-jerk*h,Math.min(jerk*h,desired-this.rate));
+   let delta=(previous+this.rate)*.5*h;
+   delta=Math.max(Math.min(0,difference),Math.min(Math.max(0,difference),delta));
+   this.value+=delta;
+   if(this.value===this.target)this.rate=0;
+  }
+  return this.value;
+ }
 }
 if(typeof module!=='undefined'&&module.exports)module.exports={GPSSpeedTracker,GPSSpeedFollower};else {root.GPSSpeedTracker=GPSSpeedTracker;root.GPSSpeedFollower=GPSSpeedFollower;}
 })(typeof globalThis!=='undefined'?globalThis:this);
