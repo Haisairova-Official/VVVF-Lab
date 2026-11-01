@@ -7,7 +7,7 @@ A browser-only Shanghai Metro-inspired VVVF sound experiment. Existing V3 synthe
 Open the HTTPS GitHub Pages URL on a phone, tap **启用 GPS 与声音**, and grant location access. Prefer outdoors or near a window. Only passengers should operate this app; it is not a speedometer or safety instrument. Use headphones at a low volume.
 
 - Native `coords.speed` (m/s) is preferred. When unavailable, distance / elapsed time estimates speed, with positional uncertainty filtering.
-- Bad accuracy, stale fixes, implausible jumps and low-speed jitter are filtered. Smoothed speed drives the existing wheel / gear / motor-pole / slip-frequency model.
+- Bad accuracy, stale fixes, implausible jumps and low-speed jitter are filtered. GPS samples update a target, then a frame-rate-independent follower continuously smooths the instrument and audio speed (90% step response in about 1.5 seconds, in addition to a light 0.6-second input filter). Smoothed speed drives the existing wheel / gear / motor-pole / slip-frequency model.
 - Synthesis remains within the original 0–100 km/h range. The GPS readout still shows the actual estimate above that range.
 - GPS acceleration only approximates traction/braking; it does not read the train's controls.
 - No signal for 6 seconds pauses synthesis. Stop, page exit, or backgrounding clears the watch and local positions. Returning to the foreground requires another tap.

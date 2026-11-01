@@ -30,7 +30,7 @@ class GPSSpeedTracker {
     const dt=this.lastValidAt?(t-this.lastValidAt)/1000:0;
     if(this.speed!==null&&dt>0&&dt<6&&Math.abs(raw-this.speed)>Math.max(12,dt*8))return reject('速度跳变，等待稳定信号');
     const previous=this.speed;
-    const alpha=dt>0&&dt<6?1-Math.exp(-dt/1.2):1;
+    const alpha=dt>0&&dt<6?1-Math.exp(-dt/0.6):1;
     this.speed=previous===null?raw:previous+alpha*(raw-previous);
     if(raw===0&&this.speed<0.45)this.speed=0;
     this.acceleration=previous!==null&&dt>0&&dt<6?(this.speed-previous)/dt:0;
@@ -39,5 +39,13 @@ class GPSSpeedTracker {
   }
   static distance(a,b){const r=Math.PI/180,dlat=(b.lat-a.lat)*r,dlon=(b.lon-a.lon)*r,x=Math.sin(dlat/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dlon/2)**2;return 6371000*2*Math.atan2(Math.sqrt(Math.min(1,x)),Math.sqrt(Math.max(0,1-x)));}
 }
-if(typeof module!=='undefined'&&module.exports)module.exports={GPSSpeedTracker};else root.GPSSpeedTracker=GPSSpeedTracker;
+// Render/audio follower: GPS updates only the target; each animation frame moves
+// continuously toward it. 90% of a step is reached in about 1.5 seconds.
+class GPSSpeedFollower {
+ constructor(){this.reset();}
+ reset(){this.value=0;this.target=0;}
+ setTarget(value){if(Number.isFinite(value))this.target=Math.max(0,Math.min(100,value));}
+ step(dt){if(!Number.isFinite(dt)||dt<=0)return this.value;this.value+=(this.target-this.value)*(1-Math.exp(-dt/.65));if(Math.abs(this.target-this.value)<.02)this.value=this.target;return this.value;}
+}
+if(typeof module!=='undefined'&&module.exports)module.exports={GPSSpeedTracker,GPSSpeedFollower};else {root.GPSSpeedTracker=GPSSpeedTracker;root.GPSSpeedFollower=GPSSpeedFollower;}
 })(typeof globalThis!=='undefined'?globalThis:this);
